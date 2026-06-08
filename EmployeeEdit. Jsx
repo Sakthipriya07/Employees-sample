@@ -1,0 +1,12 @@
+import { toast } from "react-toastify";
+
+
+const handleUpdate = async (e) => {
+  e.preventDefault();
+
+  await updateEmployee(id, form);
+
+  toast.success("Employee Updated");
+
+  navigate("/");
+};
