@@ -1,0 +1,97 @@
+import React, { useEffect, useState } from "react";
+import { getEmployees, deleteEmployee } from "../services/api";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+
+function EmployeeList() {
+  const [employees, setEmployees] = useState([]);
+  const [search, setSearch] = useState("");
+
+  const navigate = useNavigate();
+
+  const loadData = async () => {
+    const res = await getEmployees();
+    setEmployees(res.data);
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const handleDelete = async (id) => {
+    await deleteEmployee(id);
+
+    toast.success("Employee Deleted");
+
+    loadData();
+  };
+
+  const filteredEmployees = employees.filter(
+    (emp) =>
+      emp.name.toLowerCase().includes(search.toLowerCase()) ||
+      emp.department.toLowerCase().includes(search.toLowerCase()) ||
+      emp.role.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="container">
+      <h1>Employee Management System</h1>
+
+      <div className="top-bar">
+        <input
+          type="text"
+          placeholder="Search Employee..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+
+        <button onClick={() => navigate("/add")}>
+          Add Employee
+        </button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Department</th>
+            <th>Role</th>
+            <th>Salary</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {filteredEmployees.map((emp) => (
+            <tr key={emp.id}>
+              <td>{emp.name}</td>
+              <td>{emp.email}</td>
+              <td>{emp.department}</td>
+              <td>{emp.role}</td>
+              <td>₹{emp.salary}</td>
+
+              <td>
+                <button
+                  className="edit-btn"
+                  onClick={() => navigate(`/edit/${emp.id}`)}
+                >
+                  Edit
+                </button>
+
+                <button
+                  className="delete-btn"
+                  onClick={() => handleDelete(emp.id)}
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export default EmployeeList;
