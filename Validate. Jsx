@@ -1,0 +1,105 @@
+import React, { useEffect, useState } from "react";
+import { getEmployeeById, updateEmployee } from "../services/api";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "react-toastify";
+
+function EditEmployee() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    department: "",
+    role: "",
+    salary: ""
+  });
+
+  const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    loadEmployee();
+  }, []);
+
+  const loadEmployee = async () => {
+    const res = await getEmployeeById(id);
+    setForm(res.data);
+  };
+
+  const validate = () => {
+    let newErrors = {};
+
+    const nameRegex = /^[A-Za-z ]+$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!form.name.trim()) {
+      newErrors.name = "Name is required";
+    } else if (!nameRegex.test(form.name)) {
+      newErrors.name = "Only alphabets allowed";
+    }
+
+    if (!form.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!emailRegex.test(form.email)) {
+      newErrors.email = "Invalid email format";
+    }
+
+    if (!form.department.trim()) {
+      newErrors.department = "Department is required";
+    }
+
+    if (!form.role.trim()) {
+      newErrors.role = "Role is required";
+    }
+
+    if (!form.salary) {
+      newErrors.salary = "Salary is required";
+    } else if (isNaN(form.salary) || Number(form.salary) <= 0) {
+      newErrors.salary = "Salary must be a positive number";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+
+    if (!validate()) return;
+
+    await updateEmployee(id, form);
+    toast.success("Employee updated successfully!");
+    navigate("/");
+  };
+
+  return (
+    <div style={{ padding: 20 }}>
+      <h2>Edit Employee</h2>
+
+      <form onSubmit={handleUpdate}>
+        <input name="name" value={form.name} onChange={handleChange} />
+        <p style={{ color: "red" }}>{errors.name}</p>
+
+        <input name="email" value={form.email} onChange={handleChange} />
+        <p style={{ color: "red" }}>{errors.email}</p>
+
+        <input name="department" value={form.department} onChange={handleChange} />
+        <p style={{ color: "red" }}>{errors.department}</p>
+
+        <input name="role" value={form.role} onChange={handleChange} />
+        <p style={{ color: "red" }}>{errors.role}</p>
+
+        <input name="salary" value={form.salary} onChange={handleChange} />
+        <p style={{ color: "red" }}>{errors.salary}</p>
+
+        <button className="save" type="submit">Update</button>
+      </form>
+    </div>
+  );
+}
+
+export default EditEmployee;
